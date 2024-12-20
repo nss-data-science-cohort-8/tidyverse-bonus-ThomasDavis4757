@@ -1,0 +1,110 @@
+```{r}
+library(tidyverse)
+library(dplyr)
+```
+
+#1  Read in `districts.csv` into a tibble named `districts`.
+
+```{r}
+districts = read.csv("../data/districts.csv")
+districts
+```
+#2 Notice that the first row corresponds to the whole State of Tennessee. Remove this row and save the result back to `districts`.
+  
+```{r}
+districts <- districts |> 
+  filter(system != 0)
+
+districts
+```
+
+#3 How many districts have a proficiency rate of at least 80% for both alg_1 and eng_1?
+
+```{r}
+districts |> 
+  filter(alg_1 >= 80, eng_1 >= 80)
+```
+13 counties had a proficiency rate of atleast 80 in both algebra 1 and english 1
+
+#4 How many districts have a proviciency rate less than 50% for either alg_1 or eng_1?
+
+```{r}
+districts |> 
+  filter(alg_1 <= 50 | eng_1 <= 50)
+```
+ 8 counties had less than 50% proficiency in either alg 1 or eng 1
+ 
+ 
+ 
+ #5 Which district has the lowest graduation rate?
+ 
+```{r}
+
+districts |> 
+  arrange(grad)
+```
+ If we assume that "Tenn School for Blind" is not a district, than the district with lowest graduation rate is Achievement School District.
+ 
+ 
+ #6 Within the Mid Cumberland region, which district has the highest ACT composite?
+
+```{r}
+ mid_cumb <- districts |> 
+  filter(region == 'Mid Cumberland') |> 
+  arrange(desc(act_composite))
+
+mid_cumb
+```
+ Williamson county had the highest ACT composite score out of the mid cumberland region.
+ 
+ 
+ #7 Create a scatter plot to compare alg_1 proficiency rates to alg_2 rates. What do you notice? Facet this plot by region. Does anything stand out when you facet the plots?
+ 
+```{r}
+
+
+ggplot(districts, aes(x = alg_1, y = alg_2)) + geom_point()
+```
+  It seems that when one profeciency percentage goes up the other one will as well.
+  
+```{r}
+ggplot(districts, aes(x = alg_1, y = alg_2)) + geom_point() + facet_wrap(~region)
+```
+  Despite some having more or less points, they all have a similar upwards y=x shape OTHER THAN upper cumberland, where some of its highest alg_1 percentages are the lowest alg_2 percentages.
+  
+#8 When creating this bar chart you may have noticed that some districts have missing enrollment values. For how many districts is this the case?
+
+```{r}
+districts |> 
+  filter(is.na(enrollment))
+```
+There are 4 districts with no enrollment values. 
+
+#9 A lot of rows are missing additional values. Which district has the largest number of missing values (across all variables)? Hint: you might want to look at rowwise and c_across to answer this question.
+
+Used this website for help: https://rstats101.com/count-number-of-missing-values-per-row-in-a-dataframe/
+
+```{r}
+districts |> 
+  rowwise() |> 
+  mutate(n_NAs = sum(is.na(across(everything())))) |> 
+  arrange(desc(n_NAs))
+  
+```
+The district that has the largest number of empty values is the "West Tenn School for Deaf" but if we don't count that as a district, than there are a lot tied for 10.
+
+#10 What is the mean graduation rate across all districts? What might be wrong with using just the regular mean to assess average graduation rates?
+
+```{r}
+districts |> 
+  summarize(avg_grad = mean(grad, na.rm = TRUE))
+```
+It might be skewed because some districts might be much smaller and have different conditions, which could make it higher than normal. 
+
+#11
+
+```{r}
+weighted.mean(x=districts$grad, w=districts$enrollment)
+```
+
+ 
